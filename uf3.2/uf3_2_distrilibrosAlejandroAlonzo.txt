@@ -1,0 +1,191 @@
+
+
+/*  1. Realizar una consulta que muestre los campos “Código de libro”, “titulo”
+y “Precio”, y además calcular un campo llamado “IVA” cuyo valor será el
+producto del precio por 0,21.  */
+
+SELECT Codigo_de_libro, Titulo, Precio, 
+       ROUND(precio*(.21),2) AS IVA 
+       FROM libros
+
+
+
+
+/*  2. Realizar una consulta que muestre los campos “Titulo”, “Fecha de
+pedido”, “Unidades”, “Precio” y el “Descuento”, y además calcular el un
+campo nuevo llamado “Subtotal”, cuyo valor será el producto de las
+unidades por el precio. Guardar la vista como “Subtotales”  */
+
+CREATE VIEW Subtotal AS
+            SELECT Titulo, Fecha_de_pedido, Unidades, Precio, Descuento,
+            ROUND(Unidades*(precio),2) AS Subtotal
+            FROM pedidos JOIN libros 
+            ON pedidos.Codigo_de_libro = libros.Codigo_de_libro
+
+
+
+
+/*  3. Realizar una consulta que muestre todos los campos de la consulta
+“Subtotales” y además calcular un nuevo campo llamado “Descontado”
+cuyo valor será el producto del subtotal por el descuento. Guardar vista
+como “Descontado”  */
+
+CREATE VIEW Descontado AS
+       SELECT *, ROUND(Subtotal*(Descuento),2) AS Descontado
+       FROM Subtotal
+
+
+
+/*  4. Realizar una consulta que muestre todos los campos de la consulta
+“Descontado” y además calcular un nuevo campo llamado “Total” cuyo
+valor será la diferencia del subtotal y el descontado. Guardar vista como
+“Total”.  */
+
+CREATE VIEW total AS
+       SELECT *, ROUND(Subtotal-(Descontado),2) AS Total
+       FROM Descontado
+
+
+
+
+/*   5. Realizar una consulta que muestre “Numero de pedido” “Fecha de
+pedido”, “Fecha de entrega”, y plazo de pago”, y además calcular un
+nuevo campo llamado “Fecha de cobro”, cuyo valor es la fecha de
+entrega más los días de aplazamiento.   */
+
+SELECT Numero_de_Pedido, Fecha_de_pedido, Fecha_de_entrega, Plazo_de_pago, 
+       DATE_ADD(Fecha_de_entrega, INTERVAL(Plazo_de_pago) DAY) AS Fecha_de_cobro 
+       FROM pedidos
+
+
+
+
+
+/*  6. Realizar una consulta que muestre todos los campos de los pedidos
+entregados antes del 1-7-96.   */
+
+SELECT * 
+FROM pedidos 
+WHERE Fecha_de_entrega < '1996-07-01 00:00:00'
+
+
+
+
+/*  7. Realizar una consulta que muestre todos los campos de los pedidos
+entregados en Mayo.  */
+
+SELECT * 
+FROM pedidos 
+WHERE MONTH(Fecha_de_entrega) 
+BETWEEN 5 AND 5
+
+
+
+/*  8. Realizar una consulta que muestre todos los campos de los pedidos hechos
+durante los 20 primeros días de cada mes.  */ 
+
+SELECT * 
+FROM pedidos 
+WHERE DAY(Fecha_de_pedido) BETWEEN 1 AND 20
+
+
+
+/*  9. Realizar una consulta que muestre todos los campos de los pedidos hechos
+en verano del año 1996 (es decir entre los días 21 de junio y 21 de
+septiembre).  */ 
+
+SELECT * 
+FROM pedidos 
+WHERE Fecha_de_pedido BETWEEN '1996-06-21 00:00:00'AND '1996-09-21 00:00:00'
+
+
+
+
+/*   10. Realizar una consulta que muestre todos los campos de los pedidos
+realizados entre los días 21 y 31 de cada mes.    */ 
+
+SELECT * 
+FROM pedidos 
+WHERE DAY(Fecha_de_pedido) BETWEEN 21 AND 31
+
+
+
+/*  11. Realizar una consulta que descuente el 20% el precio de cada libro.    */ 
+
+UPDATE libros
+SET Precio = ROUND(Precio*(1-.2),2) 
+
+
+/*   12. Realizar una consulta que aumente el 15% el salario de los empleados
+cuyo Código Postal acabe en 6.  */
+
+UPDATE empleados
+SET Salario = ROUND(Salario*(1.15),2)
+WHERE Codigo_Postal LIKE '%6'
+
+
+
+/*  13. Realizar una consulta que aumente el 10% el salario de todos los
+empleados cuyo código postal no acabe en 6.  */
+
+UPDATE empleados
+SET Salario = ROUND(Salario*(1.1),2) 
+WHERE Codigo_Postal NOT LIKE '%6'
+
+
+
+/*  14. Realizar una consulta que haga fijo a todos los empleados.  */
+
+UPDATE empleados
+SET Fijo = Fijo+1 
+WHERE Fijo = 0
+
+
+
+/*  15. Realizar una consulta que actualice el nombre del cliente “Galerías
+Preciados” a su nuevo nombre “El Corte Inglés”.  */
+
+UPDATE clientes 
+SET Nombre = 'El Corte Ingles' 
+WHERE clientes.Codigo_de_cliente = 'C02';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

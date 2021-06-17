@@ -1,0 +1,317 @@
+
+
+
+/*  1. Asigne la “Clave primaria” a cada tabla (en el campo que tiene la llave a
+su izquierda).  */
+
+ALTER TABLE empleados 
+ADD PRIMARY KEY(Codigo_de_empleado);
+
+ALTER TABLE libros 
+ADD PRIMARY KEY(Codigo_de_libro);
+
+ALTER TABLE pedidos 
+ADD PRIMARY KEY(Numero_de_Pedido);
+
+ALTER TABLE clientes 
+ADD PRIMARY KEY(Codigo_de_cliente);
+
+
+
+/*  2. Asigne “Índice” a cada campo que va a estar vinculado (es el que tiene el
+signo ∞ en la relación).  */
+
+ALTER TABLE pedidos 
+ADD INDEX(Codigo_de_cliente);
+
+ALTER TABLE pedidos 
+ADD INDEX(Codigo_de_empleado);
+
+ALTER TABLE pedidos 
+ADD INDEX(Codigo_de_libro);
+
+
+
+/* 3. Cree las restricciones de “Clave foránea”. */
+
+ALTER TABLE pedidos 
+ADD FOREIGN KEY (Codigo_de_empleado) 
+REFERENCES empleados(Codigo_de_empleado) 
+ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE pedidos 
+ADD FOREIGN KEY (Codigo_de_libro) 
+REFERENCES libros(Codigo_de_libro) 
+ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE pedidos 
+ADD FOREIGN KEY (Codigo_de_cliente) 
+REFERENCES clientes(Codigo_de_cliente) 
+ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+
+
+/*  4. Realizar una consulta que muestre “Nombre de cliente”, “Código de
+empleado” y Apellidos de empleado” de todos los pedidos que tengo.  */
+
+SELECT Numero_de_pedido,
+       clientes.Nombre AS Nombre_de_cliente, 
+       empleados.Codigo_de_empleado, 
+       empleados.Apellidos AS Apellido_de_epleado
+       FROM pedidos JOIN clientes 
+                    ON clientes.Codigo_de_cliente = pedidos.Codigo_de_cliente
+                    JOIN empleados
+                    ON empleados.Codigo_de_empleado = pedidos.Codigo_de_empleado
+                    ORDER BY Numero_de_pedido;
+
+
+
+/*  5. Realizar una consulta que muestre “Numero de pedido”, “Fecha de
+entrega”, “Nombre de cliente”, “Provincia” (ordenada
+ascendentemente), de todos los pedidos  */
+
+SELECT Numero_de_Pedido, Fecha_de_entrega, clientes.Nombre, clientes.Provincia
+FROM clientes JOIN pedidos 
+ON clientes.Codigo_de_cliente = pedidos.Codigo_de_cliente
+ORDER BY fecha_de_entrega;
+
+
+
+
+/* 6. Realizar una consulta que muestre “Numero de pedido”, “Nombre de
+empleado”, “Apellidos de empleado”, “Nombre de cliente”, “provincia”,
+“Unidades”, “Precio” y “Descuento”. */
+
+SELECT Numero_de_pedido,
+       empleados.Nombre AS Nombre_de_empleado,
+       empleados.Apellidos AS Apellido_de_empleado,
+       empleados.Provincia AS Provincia_del_empleado,
+       clientes.Nombre AS Nombre_de_cliente,
+       clientes.Provincia AS Provincia_del_cliente, 
+       unidades, precio, descuento 
+       FROM pedidos JOIN clientes 
+                    ON clientes.Codigo_de_cliente = pedidos.Codigo_de_cliente
+                    JOIN empleados
+                    ON empleados.Codigo_de_empleado = pedidos.Codigo_de_empleado
+                    JOIN libros
+                    ON libros.Codigo_de_libro = pedidos.Codigo_de_libro
+                    ORDER BY Numero_de_pedido;
+
+
+
+
+/*  7. Realizar una consulta que muestre “Titulo” y “Fecha de entrega”
+(ordenada descendentemente) de los libros vendidos en Madrid.  */
+
+SELECT titulo AS titulo_de_libro,
+       Fecha_de_entrega
+       FROM pedidos JOIN libros
+                    ON pedidos.Codigo_de_libro = libros.Codigo_de_libro
+                    JOIN clientes
+                    ON pedidos.Codigo_de_cliente = clientes.Codigo_de_cliente
+                    WHERE clientes.Provincia = "Madrid"
+                    ORDER BY fecha_de_entrega DESC;
+                    
+
+
+
+/*  8. Realizar una consulta que muestre los campos “Nombre de empleado” y
+el promedio de “Unidades” vendidas en los pedidos realizados por cada
+uno de ellos.  */
+
+SELECT empleados.Nombre AS Nombre_de_empleado,
+       ROUND(AVG(unidades),2) AS Promedio_de_ud_vendidas
+       FROM pedidos  RIGHT JOIN empleados 
+       ON empleados.Codigo_de_empleado = pedidos.Codigo_de_empleado
+       GROUP BY empleados.Codigo_de_empleado;
+
+
+
+/*   9. Realizar una consulta que muestre los campos “Nombre del cliente” y
+“unidades” pedidas por cada uno de ellos, y que los clientes aparezcan
+agrupados mientras que las unidades aparezcan sumadas. */
+
+SELECT clientes.Nombre AS Nombre_de_cliente,
+       SUM(unidades) AS uds_pedidas
+       FROM pedidos RIGHT JOIN clientes
+       ON clientes.Codigo_de_cliente = pedidos.Codigo_de_cliente
+       GROUP BY clientes.Nombre
+       ORDER BY uds_pedidas DESC;
+
+
+
+/*  10. Realizar una consulta que muestre los campos “nombre del cliente” y
+Unidades” pedidas por cada uno de ellos, y que los clientes aparezcan
+agrupados mientras que las unidades aparezcan calculadas mediante la
+función de promedio.  */
+
+SELECT clientes.Nombre AS Nombre_de_cliente,
+       ROUND(AVG(unidades),2) AS uds_pedidas
+       FROM pedidos RIGHT JOIN clientes
+       ON clientes.Codigo_de_cliente = pedidos.Codigo_de_cliente
+       GROUP BY clientes.Nombre
+       ORDER BY uds_pedidas DESC;
+
+
+
+/*   11. Realizar una consulta que muestre los campos “Titulo” y “unidades”
+pedidas de cada uno de ellos en cada pedido, y que los títulos aparezcan
+agrupados mientras que las unidades aparezcan sumadas.   */
+
+SELECT Titulo,
+       SUM(unidades) AS uds_pedidas
+       FROM pedidos  JOIN libros
+       ON libros.Codigo_de_libro = pedidos.Codigo_de_libro
+       GROUP BY pedidos.Codigo_de_libro
+       ORDER BY uds_pedidas DESC;
+
+
+
+/*   12. Realizar una consulta que muestre “Código de cliente”, “Fecha de
+pedido” y “Fecha de entrega”, de todos los clientes que hayan realizado
+más de un pedido   */
+
+SELECT Codigo_de_cliente, (Fecha_de_pedido), (Fecha_de_entrega)
+FROM pedidos 
+WHERE Codigo_de_cliente IN (
+    SELECT Codigo_de_cliente
+    FROM pedidos
+    GROUP BY Codigo_de_cliente 
+    HAVING COUNT(Codigo_de_cliente)>1
+    )
+    ORDER BY Codigo_de_cliente
+
+
+
+
+/*   13. Realizar una consulta que muestre “Código de libro”, “Unidades”, y
+“fecha de pedido”, de todos los libros que se hayan vendido en más de un
+pedidos.  */
+
+SELECT Codigo_de_libro, Unidades,Fecha_de_pedido 
+FROM pedidos 
+WHERE Codigo_de_libro IN(
+     SELECT Codigo_de_libro 
+     FROM pedidos 
+     GROUP BY Codigo_de_libro 
+     HAVING COUNT(Codigo_de_libro)>1
+    )
+
+
+
+
+/*   14. Realizar una consulta que muestre la “Fecha de pedido” donde se hayan
+realizado más de un pedido, así como las fechas en las que se han
+entregado.   */
+
+SELECT Fecha_de_pedido, Fecha_de_entrega 
+FROM pedidos
+WHERE Fecha_de_pedido IN(
+     SELECT Fecha_de_pedido
+     FROM pedidos 
+     GROUP BY Fecha_de_pedido
+     HAVING COUNT(Numero_de_Pedido)>1
+    )
+    ORDER BY Fecha_de_pedido
+
+
+
+
+/*  15. Realizar una consulta que muestre el “Código de empleado” de todos los
+empleados que hayan realizado más de un pedido, así como la “Fecha de
+pedido” y la “Fecha de entrega” de los mismos.   */
+
+SELECT Codigo_de_empleado, Fecha_de_pedido, Fecha_de_entrega
+FROM pedidos 
+WHERE Codigo_de_empleado IN(
+    SELECT Codigo_de_empleado
+    FROM pedidos
+    GROUP BY Codigo_de_empleado
+    HAVING COUNT(Codigo_de_empleado)>1
+    )
+    ORDER BY Codigo_de_empleado;
+
+
+
+
+
+/*   16. Realizar una consulta que muestre todos los campos de los clientes que
+no han realizado ningún pedido. “Malos clientes”.    */
+
+
+SELECT *
+FROM clientes
+WHERE NOT EXISTS (
+    SELECT pedidos.Codigo_de_cliente
+    FROM pedidos
+    WHERE pedidos.Codigo_de_cliente = clientes.Codigo_de_cliente
+    )
+
+opcion 2
+SELECT clientes.*,pedidos.Numero_de_Pedido
+FROM clientes  LEFT JOIN  pedidos
+ON clientes.Codigo_de_cliente=pedidos.Codigo_de_cliente
+WHERE Numero_de_Pedido IS NULL
+
+opcion3
+SELECT clientes.*
+FROM clientes LEFT JOIN pedidos
+ON clientes.Codigo_de_cliente = pedidos.Codigo_de_cliente
+GROUP BY clientes.Codigo_de_cliente
+HAVING COUNT(pedidos.Codigo_de_cliente) =0
+
+
+
+
+/*   17. Realizar una consulta que muestre todos los campos de de los libros que
+no se hayan vendido nunca: “Malos libros”    */
+
+SELECT *
+FROM libros
+WHERE NOT EXISTS (
+    SELECT pedidos.Codigo_de_libro
+    FROM pedidos
+    WHERE pedidos.Codigo_de_libro = libros.Codigo_de_libro
+    )
+
+
+
+
+/*   18. Realizar una consulta que muestre todos los datos de los empleados que
+no hayan realizado ningún pedido: “Malos empleados”.   */
+
+SELECT *
+FROM empleados
+WHERE NOT EXISTS (
+    SELECT pedidos.Codigo_de_empleado
+    FROM pedidos
+    WHERE pedidos.Codigo_de_empleado = empleados.Codigo_de_empleado
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
